@@ -1,4 +1,5 @@
 // js utilities
+import binomial from 'https://cdn.jsdelivr.net/gh/stdlib-js/random-base-binomial@esm/index.mjs';
 
 // https://stackoverflow.com/questions/149055/how-to-format-numbers-as-currency-strings
 function financial(x) {
@@ -11,7 +12,7 @@ function percentage(x) {
 }
 
 // game tick sizes may be 1 (hourly) = 8760 ticks; 24 (daily) = 365 ticks; 168 (weekly) = 52 ticks;
-let tickSize = 1;
+let tickSize = 24;
 let tick = 0;
 let users = 1;
 // 1 - 100 scale
@@ -58,17 +59,14 @@ function calculateChurnProbability () {
     // so p2 = p1/n2 where n2 == (365 * 24 / tickSize)
     // clean that that works. (does it? i did not prove this result)
 
-    if (tickSize === 1) {
-        return adjustedForSentiment/8760;
-    } else if (tickSize === 24) {
-        return adjustedForSentiment/365;
-    } else if (tickSize === 168) {
-        return adjustedForSentiment/52;
-    }
+    let churnProbability = adjustedForSentiment/(8760/tickSize);
+    // console.log(churnProbability)
+    return churnProbability;
 }
 
-function calculateNumberOfChurnedUsers () {
-
+function churn () {
+    const churned_users = binomial(users, calculateChurnProbability());
+    users -= churned_users;
 }
 
 function paintInterface () {
@@ -96,6 +94,32 @@ function advanceTime () {
     tick += tickSize;
 }
 
+function calculateOrganicGrowthProbability () {
+    // return the probability of a given user referring another user in this very tick
+
+    // first, calculate the annualized expected number of referred users.
+    // sentiment 100 : 3.0, 90: 2.43, 80: 1.92, 70: 1.47, 60: 1.08, below that 1.0
+    let annual_virality_ev = Math.max(1.0, (sentiment **2) / 3333);
+    // make it slightly less effective so that at 100m users it levels out at 1.5
+    annual_virality_ev = annual_virality_ev / (1+(Math.min(users,100000000)/100000000))
+    // TODO remove or include jitter? annual_virality_ev = annual_virality_ev * jitter(0.75, 1.25);
+
+
+}
+
+function organicGrowth () {
+
+
+    // the above is annualized so we need to make it tick-sized
+    // if we have x^365 = p then x = 365th root of p = p^(1/365)
+    const tick_virality_factor = Math.pow(pop_adjusted_annual_virality_noised, 1/(8760/tickSize));
+
+    console.log(tick_virality_factor * users - users);
+    const new_users = Math.round(tick_virality_factor * users - users);
+    console.log(new_users);
+    users += new_users;
+}
+
 // USER ACTIONS
 
 let friendsInvited = 0;
@@ -118,6 +142,16 @@ function tellYourFriends () {
     friendsInvited += to_add;
 }
 
+function jitter (lower_bound, upper_bound) {
+    // returns a uniform probability between the upper and lower bound
+    // e.g. jitter (.75, 1.25) will have mean 1
+
+    const interval_width = upper_bound - lower_bound;
+    const random_sample = Math.random() * interval_width;
+
+    return lower_bound + random_sample;
+}
+
 function raiseFinancing () {
     // multiple scales with base-10 log of user count to reflect shrinking multiples at scale
     // examples of users: multiples :: 100 : 25, 1000: 23, 100K: 18, 10M: 13.8, 1B: 9.3
@@ -129,7 +163,7 @@ function raiseFinancing () {
     const multiple =  Math.max(user_multiple, 1) * Math.max(sentiment_multiple, 1) * random_multiple_adjustment;
     // add some random cash for the early game
     // second parameter: dilution, always in [0.1, 0.3] interval
-    const dilution = 0.1 + (Math.random() / 5);
+    const dilution = jitter(0.1, 0.3)
     financingOffer = [(multiple * users) + (Math.random() * 10000), dilution]
 };
 
@@ -161,7 +195,7 @@ function decreaseAdLevel () {
     }
 }
 
-function actionHandler (action) {
+window.actionHandler = (action) => {
     let output = '';
     let input = '';
     console.log(action);
@@ -193,6 +227,8 @@ function gameLoop () {
     // 1 second per tick game loop
     setTimeout(() => {
         advanceTime();
+        organicGrowth();
+        churn();
         getAdRevenueInTimestep();
         paintInterface();
         gameLoop();
