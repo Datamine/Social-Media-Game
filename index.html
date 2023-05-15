@@ -24,11 +24,14 @@
             <div>
                 User sentiment: <span id="sentiment"></span>
             </div>
+            <div>
+                Moderation level: <span id="modLevel"></span>
+            </div>
         </div>
         <h2>Settings</h2>
         <div>
             <div>
-                Advertising spend: <span id="adSpend"></span><span id="adSpendButtons"></span>
+                Marketing spend: <span id="marketingSpend"></span><span id="marketingSpendButtons"></span>
             </div>
         </div>
         <div>
@@ -36,13 +39,50 @@
                 Monetization level: <span id="adLevel"></span><span id="adLevelButtons"></span>
             </div>
         </div>
+        <h2>Team</h2>
+        <div>
+            <div>
+                Data Scientists: <span id="dataScientistCost"></span><span id="dataScientistButtons"></span>
+            </div>
+            <div>
+                Moderators: <span id="moderatorCost"></span><span id="moderatorButtons"></span>
+            </div>
+            <div>
+                Engineers: <span id="engineerCost"></span><span id="engineerButtons"></span>
+            </div>
+        </div>
+        <h2>Debug Rates</h2>
+        <div>
+            <div>
+                EV Organic Growth / Timestep: <span id="ev_organic_growth"></span>
+            </div>
+            <div>
+                EV Churn / Timestep: <span id="ev_churn"></span>
+            </div>
+            <div>
+                EV Revenue / Timestep: <span id="ev_revenue"></span>
+            </div>
+            <div>
+                Marketing Growth / Timestep: <span id="ev_marketing_growth"></span>
+            </div>
+        </div>
         <h2>Actions</h2>
         <div>
             <button onClick="actionHandler('tellYourFriends')">Tell Friends</button>
         </div>
         <div>
-            <button onClick="actionHandler('raiseFinancing')">Raise Financing</button>
+            <button onClick="actionHandler('requestFinancing')" id="requestFinancingButton">Raise Financing</button>
         </div>
+        <div>
+            <button onClick="actionHandler('requestLoan')" id="requestLoanButton">Take a Loan</button>
+        </div>
+        <div>
+            <button onClick="actionHandler('fastForward1Day')">Fast-Forward 1 Day</button>
+        </div>
+        <div>
+            <button onClick="actionHandler('fastForward1Week')">Fast-Forward 1 Week</button>
+        </div>
+        <div id="Loans"></div>
         <div id="gameOutputContainer"></div>
         <div id="gameInputContainer"></div>
     </body>
